@@ -1,0 +1,10 @@
+services:
+  db:
+    image: "postgres:15.2"
+    restart: always
+    environment:
+      POSTGRES_USER: fiber
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - "./postgres/socket:/var/run/postgresql"
+      - "./postgres/data:/var/lib/postgresql/data"
