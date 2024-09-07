@@ -2,9 +2,18 @@ services:
   db:
     image: "postgres:15.2"
     restart: always
-    environment:
-      POSTGRES_USER: fiber
-      POSTGRES_HOST_AUTH_METHOD: trust
+    env_file:
+      - .env.local
     volumes:
       - "./postgres/socket:/var/run/postgresql"
       - "./postgres/data:/var/lib/postgresql/data"
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+
+  api:
+    build: .
+    env_file:
+      - .env.local
+    ports:
+      - "3000:3000"
+    links:
+      - "db:database"

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,6 +16,7 @@ import (
 func setupRoutes(app *fiber.App, s server.Server) {
 	app.Get("/users", s.GetAllUsers)
 	app.Get("/users/:user_id", s.GetUser)
+	app.Get("/events", s.QueryEvents)
 }
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 	log := zerolog.New(os.Stdout).With().Logger()
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal().Msg("failed to load configs")
+		log.Fatal().Err(err).Msg("failed to load configs")
 	}
 
 	app := fiber.New(cfg.Fiber)
@@ -31,9 +33,9 @@ func main() {
 
 	s, err := server.New(cfg)
 	if err != nil {
-		log.Fatal().Msg("failed to create server")
+		log.Fatal().Err(err).Msg("failed to create server")
 	}
 	setupRoutes(app, s)
 
-	app.Listen(":3000")
+	app.Listen(fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port))
 }
