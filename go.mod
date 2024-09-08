@@ -1,10 +1,13 @@
 module github.com/jdks/fiber-example
 
-go 1.21
+go 1.22
+
+toolchain go1.22.2
 
 require (
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/brianvoe/gofakeit/v7 v7.0.4 // indirect
 	github.com/bytedance/sonic v1.8.5 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect

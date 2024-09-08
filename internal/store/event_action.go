@@ -31,6 +31,35 @@ const (
 	sendLabel     = "send"
 )
 
+var EventActionMap = map[string]EventAction{
+	logoutLabel:   LogoutAction,
+	loginLabel:    LoginAction,
+	viewLabel:     ViewAction,
+	depositLabel:  DepositAction,
+	withdrawLabel: WithdrawAction,
+	tradeLabel:    TradeAction,
+	sendLabel:     SendAction,
+}
+var EventActionLookup = map[EventAction]string{
+	LogoutAction:   logoutLabel,
+	LoginAction:    loginLabel,
+	ViewAction:     viewLabel,
+	DepositAction:  depositLabel,
+	WithdrawAction: withdrawLabel,
+	TradeAction:    tradeLabel,
+	SendAction:     sendLabel,
+}
+
+var EventActionLabels = []string{
+	logoutLabel,
+	loginLabel,
+	viewLabel,
+	depositLabel,
+	withdrawLabel,
+	tradeLabel,
+	sendLabel,
+}
+
 type EventAction int
 
 func (a *EventAction) UnmarshalJSON(b []byte) error {
@@ -39,46 +68,16 @@ func (a *EventAction) UnmarshalJSON(b []byte) error {
 	}
 
 	s := strings.Trim(string(b), `"`)
-	switch strings.ToLower(s) {
-	case logoutLabel:
-		*a = LogoutAction
-	case loginLabel:
-		*a = LoginAction
-	case viewLabel:
-		*a = ViewAction
-	case depositLabel:
-		*a = DepositAction
-	case withdrawLabel:
-		*a = WithdrawAction
-	case tradeLabel:
-		*a = TradeAction
-	case sendLabel:
-		*a = SendAction
-	default:
+	if _, ok := EventActionMap[s]; !ok {
 		return fmt.Errorf("unknown EventAction: %s", s)
 	}
+	*a = EventActionMap[s]
 	return nil
 }
 
 func (a EventAction) MarshalJSON() ([]byte, error) {
-	var label string
-	switch a {
-	case LogoutAction:
-		label = logoutLabel
-	case LoginAction:
-		label = loginLabel
-	case ViewAction:
-		label = viewLabel
-	case DepositAction:
-		label = depositLabel
-	case WithdrawAction:
-		label = withdrawLabel
-	case TradeAction:
-		label = tradeLabel
-	case SendAction:
-		label = sendLabel
-	default:
+	if _, ok := EventActionLookup[a]; !ok {
 		return nil, fmt.Errorf("unknown EventAction: %d", a)
 	}
-	return json.Marshal(label)
+	return json.Marshal(EventActionLookup[a])
 }

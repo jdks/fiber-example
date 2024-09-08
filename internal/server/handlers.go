@@ -1,6 +1,9 @@
 package server
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/jdks/fiber-example/internal/models"
@@ -11,16 +14,17 @@ const defaultPageSize = 100
 
 func (s Server) GetUser(fiberCtx *fiber.Ctx) error {
 	userID := fiberCtx.Params("user_id")
-	u, err := s.store.GetUser(fiberCtx.Context(), userID)
+	s.log.Info().Str("user_id", userID).Msg("Getting user")
+	user, err := s.store.GetUser(fiberCtx.Context(), userID)
 	if err != nil {
-		s.log.Error().Err(err).Msg("")
+		s.log.Error().Err(err).Msg("Failed to get user")
 		return fiberCtx.JSON(models.User{})
 	}
 
 	return fiberCtx.JSON(models.User{
-		ID:        u.ID.String(),
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
+		ID:        user.ID.String(),
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
 	})
 }
 
@@ -32,16 +36,16 @@ func (s Server) GetAllUsers(fiberCtx *fiber.Ctx) error {
 		s.log.Error().Err(err).Msg("")
 		return fiberCtx.JSON(users)
 	}
-	us := make([]models.User, len(users))
-	for i, u := range users {
-		us[i] = models.User{
-			ID:        u.ID.String(),
-			FirstName: u.FirstName,
-			LastName:  u.LastName,
+	resp := make([]models.User, len(users))
+	for i, user := range users {
+		resp[i] = models.User{
+			ID:        user.ID.String(),
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
 		}
 	}
 
-	return fiberCtx.JSON(users)
+	return fiberCtx.JSON(resp)
 }
 
 func (s Server) QueryEvents(fiberCtx *fiber.Ctx) error {
@@ -72,20 +76,21 @@ func (s Server) QueryEvents(fiberCtx *fiber.Ctx) error {
 		s.log.Error().Err(err).Msg("")
 	}
 
-	ues := make([]models.UserEvent, len(userEvents))
-	associatedUserIDs := make([]string, len(userEvents[0].AssociatedUserIDs))
-	for i, ue := range userEvents {
-		for j, id := range ue.AssociatedUserIDs {
+	resp := make([]models.UserEvent, len(userEvents))
+	for i, userEvent := range userEvents {
+		associatedUserIDs := make([]string, len(userEvent.AssociatedUserIDs))
+		for j, id := range userEvent.AssociatedUserIDs {
 			associatedUserIDs[j] = id.String()
 		}
-		ues[i] = models.UserEvent{
-			ID:                ue.EventID.String(),
-			UserID:            ue.UserID.String(),
-			CreatedAt:         ue.CreatedAt,
-			Action:            string(ue.Payload.Action),
-			SessionID:         ue.Payload.SessionID.String(),
+		action, _ := json.Marshal(userEvent.Payload.Action)
+		resp[i] = models.UserEvent{
+			ID:                userEvent.EventID.String(),
+			UserID:            userEvent.UserID.String(),
+			CreatedAt:         userEvent.CreatedAt,
+			Action:            strings.Trim(string(action), `"`),
+			SessionID:         userEvent.Payload.SessionID.String(),
 			AssociatedUserIDs: associatedUserIDs,
 		}
 	}
-	return fiberCtx.JSON(ues)
+	return fiberCtx.JSON(resp)
 }
